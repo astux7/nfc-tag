@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting("Android", mv.getText())
+                    Greeting(mv)
                 }
             }
         }
@@ -52,13 +52,13 @@ class MainActivity : ComponentActivity() {
         this.nfcAdapter = NfcAdapter.getDefaultAdapter(this)?.let { it }
     }
 
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         var tagFromIntent: Tag? = intent?.getParcelableExtra(NfcAdapter.EXTRA_TAG)
         val nfc = NfcA.get(tagFromIntent)
         nfc.connect()
         val isConnected = nfc.isConnected()
+        mv.setConnected(isConnected)
 
         if (isConnected) {
             if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent?.action) {
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
         if (ndefMessageArray != null) {
             val ndefMessage = ndefMessageArray[0] as NdefMessage
             //Get Bytes of payload
-            val payloads = ndefMessage.records //[0].payload
+            val payloads = ndefMessage.records
             // Read First Byte and then trim off the right length
             var text = ""
             payloads.forEach { record ->
@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
         val textArray: ByteArray =
             Arrays.copyOfRange(payload, payload[0].toInt() + 1, payload.size)
         // Convert to Text
-        val text = String(textArray)
+        val text = String(textArray, Charsets.UTF_8)
 
         Log.e("ans", "IS Connected data:" + text)
 
@@ -126,16 +126,24 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         enableForegroundDispatch(this, this.nfcAdapter)
     }
+
+    public override fun onPause() {
+        super.onPause()
+        enableForegroundDispatch(this, this.nfcAdapter)
+    }
+
 }
 
 
 @Composable
-fun Greeting(name: String, text: String) {
+fun Greeting( vm: NfcViewModel) {
     Column() {
-        Text(text = "Hello $name!")
+        Text("NFC scan status:" + vm.isConnected() + "\n")
+        if(vm.getText().isNotBlank()) {
+            Text("Tag is scanned with Data: ")
+            Text(vm.getText())
+        }
 
-        Text("Tag is scanned with Data: ")
-        Text(text)
     }
 
 }
@@ -143,7 +151,8 @@ fun Greeting(name: String, text: String) {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
+    val vm = NfcViewModel()
     NFCTagReaderTheme {
-        Greeting("Android", "")
+        Greeting(vm)
     }
 }

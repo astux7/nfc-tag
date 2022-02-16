@@ -3,7 +3,7 @@
     package="com.astux7.nfctagreader">
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
-    <uses-sdk android:minSdkVersion="10"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
