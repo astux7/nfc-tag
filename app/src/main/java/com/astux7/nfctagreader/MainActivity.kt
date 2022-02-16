@@ -81,15 +81,26 @@ class MainActivity : ComponentActivity() {
         if (ndefMessageArray != null) {
             val ndefMessage = ndefMessageArray[0] as NdefMessage
             //Get Bytes of payload
-            val payload = ndefMessage.records[0].payload
+            val payloads = ndefMessage.records //[0].payload
             // Read First Byte and then trim off the right length
-            val textArray: ByteArray =
-                Arrays.copyOfRange(payload, payload[0].toInt() + 1, payload.size)
-            // Convert to Text
-            val text = String(textArray)
+            var text = ""
+            payloads.forEach { record ->
+                text += "\n" + parseMultiMessages(record.payload)
+            }
             mv.setText(text)
             Log.e("ans", "IS Connected data:" + mv.getText())
         }
+    }
+
+    private fun parseMultiMessages(payload: ByteArray): String {
+        val textArray: ByteArray =
+            Arrays.copyOfRange(payload, payload[0].toInt() + 1, payload.size)
+        // Convert to Text
+        val text = String(textArray)
+
+        Log.e("ans", "IS Connected data:" + text)
+
+        return text
     }
 
     private fun enableForegroundDispatch(activity: ComponentActivity, adapter: NfcAdapter?) {
